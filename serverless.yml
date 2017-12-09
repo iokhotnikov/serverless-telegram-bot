@@ -1,0 +1,94 @@
+service: serverless-telegram-bot
+
+provider:
+  name: aws
+  stage: ${self:custom.config.STAGE}
+  runtime: nodejs6.10
+  region: ${self:custom.config.REGION}
+  memorySize: 128
+  environment:
+      ACCESS_KEY: ${self:custom.config.ACCESS_KEY}
+      SECRET_KEY: ${self:custom.config.SECRET_KEY}
+      SUBSCRIBERS_TABLE: ${self:service}-${self:provider.stage}-subscribers
+      DATA_TABLE: ${self:service}-${self:provider.stage}-data
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:GetItem
+      Resource: arn:aws:dynamodb:${self:provider.region}:${self:custom.config.ACCOUNT_ID}:table/${self:provider.environment.SUBSCRIBERS_TABLE}
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+      Resource: arn:aws:dynamodb:${self:provider.region}:${self:custom.config.ACCOUNT_ID}:table/${self:provider.environment.DATA_TABLE}
+
+functions:
+  bot:
+    environment:
+      TELEGRAM_BOT_TOKEN: ${self:custom.config.TELEGRAM_BOT_TOKEN}
+    handler: handler.bot
+    events:
+      - http:
+          path: /
+          method: post
+          cors: true
+      - schedule: rate(4 hours)
+
+custom:
+  config: ${file(./.slsconfig.yml)}
+  webpackIncludeModules: true
+
+plugins:
+  - serverless-webpack
+
+resources:
+  Resources:
+    SubcribersDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: N
+          -
+            AttributeName: active
+            AttributeType: N
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.SUBSCRIBERS_TABLE}
+        GlobalSecondaryIndexes:
+          -
+            IndexName: active-index
+            KeySchema:
+              -
+                AttributeName: active
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+    DataTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-${self:provider.stage}-data

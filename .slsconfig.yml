@@ -1,0 +1,6 @@
+STAGE: aws-stage
+REGION: aws-region
+TELEGRAM_BOT_TOKEN: telegram-bot-token
+ACCOUNT_ID: aws-account-id
+ACCESS_KEY: aws-access-key-id
+SECRET_KEY: aws-secret-key
