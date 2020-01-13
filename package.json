@@ -24,6 +24,6 @@
     "serverless": "^1.24.1",
     "serverless-webpack": "^4.1.0",
     "webpack": "^3.9.1",
-    "webpack-node-externals": "^1.6.0"
+    "webpack-node-externals": "^1.7.2"
   }
 }
