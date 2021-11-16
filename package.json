@@ -12,7 +12,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "aws-sdk": "^2.602.0",
+    "aws-sdk": "^2.814.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-plugin-transform-runtime": "^6.23.0",
